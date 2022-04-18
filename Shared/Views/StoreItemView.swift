@@ -29,14 +29,23 @@ struct StoreItemView: View {
             }
             Spacer()
             Button(action: { onPricePress(item) }) {
-                Text(item.info.displayPrice)
-                    .foregroundColor(.primary)
-                    .bold()
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                    .background(Color.accentColor)
-                    .cornerRadius(16)
+                KJustStack {
+                    if item.isPurchased {
+                        Text(Image(systemName: "checkmark"))
+                            .foregroundColor(.primary)
+                            .bold()
+                    } else {
+                        Text(item.info.displayPrice)
+                            .foregroundColor(.primary)
+                            .bold()
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
+                .background(Color.accentColor)
+                .cornerRadius(16)
             }
+            .disabled(item.isPurchased)
         }
     }
 }

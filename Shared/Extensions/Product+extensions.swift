@@ -8,7 +8,7 @@
 import StoreKit
 
 extension Product {
-    func toStoreProduct(emoji: String) -> StoreProduct {
-        .init(emoji: emoji, info: self)
+    func toStoreProduct(emoji: String, isPurchased: Bool) -> StoreProduct {
+        .init(emoji: emoji, info: self, isPurchased: isPurchased)
     }
 }

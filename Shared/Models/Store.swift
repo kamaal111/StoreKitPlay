@@ -15,10 +15,17 @@ final class Store: ObservableObject {
     @Published var isLoading = false
     @Published private(set) var purchasedIdentifiers = Set<String>()
 
+    private var updateListenerTask: Task<Void, Error>?
     private let productsMap: [String: String]
 
     init() {
         self.productsMap = Self.getInitialProductsMap()
+
+        self.updateListenerTask = listenForTransactions()
+    }
+
+    deinit {
+        updateListenerTask?.cancel()
     }
 
     enum Errors: Error {
@@ -39,7 +46,9 @@ final class Store: ObservableObject {
             var cars: [StoreProduct] = []
             var fuel: [StoreProduct] = []
             for product in storeProducts {
-                let customProduct = product.toStoreProduct(emoji: productsMap[product.id] ?? "?")
+                let isPurchased = await self.isPurchased(product.id)
+                let emoji = productsMap[product.id] ?? "?"
+                let customProduct = product.toStoreProduct(emoji: emoji, isPurchased: isPurchased)
                 switch product.type {
                 case .nonConsumable: cars.append(customProduct)
                 case .consumable: fuel.append(customProduct)
@@ -84,14 +93,52 @@ final class Store: ObservableObject {
         return transaction
     }
 
+    private func isPurchased(_ productIdentifier: String) async -> Bool {
+        // Get the most recent transaction receipt for this `productIdentifier`.
+        guard let result = await Transaction.latest(for: productIdentifier) else { return false }
+
+        let transaction: Transaction
+        let transactionResult = checkVerified(result)
+        switch transactionResult {
+        case .failure(let failure):
+            print("transaction could not be verified \(failure)")
+            return false
+        case .success(let success): transaction = success
+        }
+
+        return transaction.revocationDate == nil && !transaction.isUpgraded
+    }
+
     @MainActor
-    func updatePurchasedIdentifiers(_ transaction: Transaction) async {
+    private func updatePurchasedIdentifiers(_ transaction: Transaction) async {
         if transaction.revocationDate == nil {
             // If the App Store has not revoked the transaction, add it to the list of `purchasedIdentifiers`.
             purchasedIdentifiers.insert(transaction.productID)
         } else {
             // If the App Store has revoked this transaction, remove it from the list of `purchasedIdentifiers`.
             purchasedIdentifiers.remove(transaction.productID)
+        }
+    }
+
+    private func listenForTransactions() -> Task<Void, Error> {
+        Task.detached { [weak self] in
+            guard let self = self else { return }
+
+            // Iterate through any transactions which didn't come from a direct call to `purchase()`.
+            for await result in Transaction.updates {
+                let transaction: Transaction
+                let transactionResult = self.checkVerified(result)
+                switch transactionResult {
+                case .failure(let failure):
+                    print("transaction could not be verified \(failure)")
+                    continue
+                case .success(let success): transaction = success
+                }
+
+                await self.updatePurchasedIdentifiers(transaction)
+
+                await transaction.finish()
+            }
         }
     }
 
