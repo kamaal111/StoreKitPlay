@@ -1,0 +1,33 @@
+{
+  "identifier" : "820CC5E1",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "95973F79",
+      "localizations" : [
+        {
+          "description" : "A standard five-seater",
+          "displayName" : "Car",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "io.kamaal.StoreKitPlay.nonconsumable.car",
+      "referenceName" : "Car",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 1,
+    "minor" : 2
+  }
+}
