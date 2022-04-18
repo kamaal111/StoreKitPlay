@@ -22,14 +22,18 @@ struct ContentView: View {
                 if !store.cars.isEmpty {
                     Section(header: Text("Cars")) {
                         ForEach(store.cars) { car in
-                            StoreItemView(item: car)
+                            StoreItemView(item: car, onPricePress: { item in
+                                Task { await store.purchase(item) }
+                            })
                         }
                     }
                 }
                 if !store.fuel.isEmpty {
                     Section(header: Text("Fuel")) {
                         ForEach(store.fuel) { fuel in
-                            StoreItemView(item: fuel)
+                            StoreItemView(item: fuel, onPricePress: { item in
+                                Task { await store.purchase(item) }
+                            })
                         }
                     }
                 }
@@ -47,28 +51,6 @@ struct ContentView: View {
                 await store.requestProducts()
             }
         })
-    }
-}
-
-struct StoreItemView: View {
-    let item: StoreProduct
-
-    var body: some View {
-        VStack {
-            HStack {
-                Text(item.emoji)
-                Text(item.info.displayName)
-                    .font(.headline)
-                Spacer()
-                Text(item.info.displayPrice)
-                    .bold()
-            }
-            Text(item.info.description)
-                .foregroundColor(.secondary)
-                .font(.subheadline)
-                .ktakeWidthEagerly(alignment: .leading)
-                .padding(.top, 1)
-        }
     }
 }
 
