@@ -10,7 +10,8 @@ import StoreKit
 
 final class Store: ObservableObject {
 
-    @Published private(set) var cars: [Product] = []
+    @Published private(set) var cars: [StoreProduct] = []
+    @Published var isLoading = false
 
     private let productsMap: [String: String]
 
@@ -20,25 +21,35 @@ final class Store: ObservableObject {
 
     @MainActor
     func requestProducts() async {
-        let storeProducts: [Product]
-        do {
-            storeProducts = try await Product.products(for: productsMap.keys)
-        } catch {
-            print("failed product request: \(error)")
-            return
-        }
-
-        var cars: [Product] = []
-
-        for product in storeProducts {
-            switch product.type {
-            case .nonConsumable: cars.append(product)
-            default: continue
+        await withLoading(completion: {
+            let storeProducts: [Product]
+            do {
+                storeProducts = try await Product.products(for: productsMap.keys)
+            } catch {
+                print("failed product request: \(error)")
+                return
             }
-        }
 
-        print("cars", cars)
-        self.cars = cars
+            var cars: [Product] = []
+
+            for product in storeProducts {
+                switch product.type {
+                case .nonConsumable: cars.append(product)
+                default: continue
+                }
+            }
+
+            print("storeProducts", storeProducts)
+            self.cars = cars.map({ product in
+                StoreProduct(emoji: productsMap[product.id] ?? "?", info: product)
+            })
+        })
+    }
+
+    private func withLoading(completion: () async -> Void) async {
+        isLoading = true
+        await completion()
+        isLoading = false
     }
 
     private static func getInitialProductsMap() -> [String: String] {
@@ -54,4 +65,11 @@ final class Store: ObservableObject {
         return productsMap ?? [:]
     }
 
+}
+
+struct StoreProduct: Hashable, Identifiable {
+    let emoji: String
+    let info: Product
+
+    var id: String { info.id }
 }
