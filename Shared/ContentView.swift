@@ -16,24 +16,21 @@ struct ContentView: View {
             Form {
                 if store.isLoading {
                     KActivityIndicator(isAnimating: $store.isLoading, style: .large)
-                } else if store.cars.isEmpty {
-                    Text("No cars available")
+                } else if store.cars.isEmpty && store.fuel.isEmpty {
+                    Text("No store items available")
                 }
-                ForEach(store.cars) { car in
-                    VStack {
-                        HStack {
-                            Text(car.emoji)
-                            Text(car.info.displayName)
-                                .font(.headline)
-                            Spacer()
-                            Text(car.info.displayPrice)
-                                .bold()
+                if !store.cars.isEmpty {
+                    Section(header: Text("Cars")) {
+                        ForEach(store.cars) { car in
+                            StoreItemView(item: car)
                         }
-                        Text(car.info.description)
-                            .foregroundColor(.secondary)
-                            .font(.subheadline)
-                            .ktakeWidthEagerly(alignment: .leading)
-                            .padding(.top, 1)
+                    }
+                }
+                if !store.fuel.isEmpty {
+                    Section(header: Text("Fuel")) {
+                        ForEach(store.fuel) { fuel in
+                            StoreItemView(item: fuel)
+                        }
                     }
                 }
             }
@@ -50,6 +47,28 @@ struct ContentView: View {
                 await store.requestProducts()
             }
         })
+    }
+}
+
+struct StoreItemView: View {
+    let item: StoreProduct
+
+    var body: some View {
+        VStack {
+            HStack {
+                Text(item.emoji)
+                Text(item.info.displayName)
+                    .font(.headline)
+                Spacer()
+                Text(item.info.displayPrice)
+                    .bold()
+            }
+            Text(item.info.description)
+                .foregroundColor(.secondary)
+                .font(.subheadline)
+                .ktakeWidthEagerly(alignment: .leading)
+                .padding(.top, 1)
+        }
     }
 }
 

@@ -11,6 +11,7 @@ import StoreKit
 final class Store: ObservableObject {
 
     @Published private(set) var cars: [StoreProduct] = []
+    @Published private(set) var fuel: [StoreProduct] = []
     @Published var isLoading = false
 
     private let productsMap: [String: String]
@@ -31,18 +32,21 @@ final class Store: ObservableObject {
             }
 
             var cars: [Product] = []
-
+            var fuel: [Product] = []
             for product in storeProducts {
                 switch product.type {
                 case .nonConsumable: cars.append(product)
+                case .consumable: fuel.append(product)
                 default: continue
                 }
             }
 
             print("storeProducts", storeProducts)
-            self.cars = cars.map({ product in
-                StoreProduct(emoji: productsMap[product.id] ?? "?", info: product)
-            })
+            func toStoreProduct(_ product: Product) -> StoreProduct {
+                product.toStoreProduct(emoji: productsMap[product.id] ?? "?")
+            }
+            self.cars = cars.map(toStoreProduct(_:))
+            self.fuel = fuel.map(toStoreProduct(_:))
         })
     }
 
@@ -65,11 +69,4 @@ final class Store: ObservableObject {
         return productsMap ?? [:]
     }
 
-}
-
-struct StoreProduct: Hashable, Identifiable {
-    let emoji: String
-    let info: Product
-
-    var id: String { info.id }
 }

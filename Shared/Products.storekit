@@ -18,6 +18,21 @@
       "productID" : "io.kamaal.StoreKitPlay.nonconsumable.car",
       "referenceName" : "Car",
       "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "52F3DB80",
+      "localizations" : [
+        {
+          "description" : "Fuel to fuel your vehicle",
+          "displayName" : "Fuel",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "io.kamaal.StoreKitPlay.consumable.fuel",
+      "referenceName" : "Fuel",
+      "type" : "Consumable"
     }
   ],
   "settings" : {
